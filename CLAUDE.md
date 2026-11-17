@@ -58,8 +58,8 @@ Company-specific context (the real project, the factory process, servers) lives 
 ## Where we are
 - Tutorial blocks done: models, migrations, admin, relations, ORM, views/templates, tests, validation, forms (incl. pt-PT decimals), CI (workflow, a deliberate failure).
 - **2026-11-17:** moved to this new public-to-be repository (`django-traceability-tutorial`, still **private** on GitHub), from a clean copy without the old history. First commit v0.12.0, CI ✅.
-- **In progress:** `README.md` (his exercise): title done; badge line still wrong in the file (the correct line was shown to him); TODO 3 (description, in English), TODO 4 (install commands, new repo name), TODO 5 (test command); headings to English.
-- **Next:** finish the README → commit; translate `aprender/GUIA.md` to English (add: URLs are not folders, Markdown badge syntax); make the repository public only after checking it (`gh repo edit --visibility public --accept-visibility-change-consequences`); then the rest of the CI block: branch protection (free on public repos), releases on `vX.Y.Z` tags.
+- **README done** (v0.12.2): he wrote title, badge, description, install and test sections; Claude restructured install into shared blocks + per-OS venv step (option B, at his request).
+- **Next:** translate `aprender/GUIA.md` to English (add: URLs are not folders, Markdown badge syntax); make the repository public only after checking it (`gh repo edit --visibility public --accept-visibility-change-consequences`); then the rest of the CI block: branch protection (free on public repos), releases on `vX.Y.Z` tags.
 - Watch out: after renaming or moving a file, the old editor tab stays open and autosave recreates the old file; remind him to close it.
 - Later: design the real domain model (receiving carcass quarters, suppliers) and decide the front-end approach.
 
