@@ -993,6 +993,14 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Check the tag matches VERSION
+        run: |
+          expected="v$(cat VERSION)"
+          if [ "$GITHUB_REF_NAME" != "$expected" ]; then
+            echo "Version $GITHUB_REF_NAME doesn't match VERSION ($expected)"
+            exit 1
+          fi
+
       - name: Create GitHub release
         run: gh release create "$GITHUB_REF_NAME" --generate-notes
         env:
@@ -1006,6 +1014,27 @@ jobs:
 - **`$GITHUB_REF_NAME`**: the name of the tag that started the run. In bash a variable is read with `$NAME` (PowerShell: `$env:NAME`).
 - A tag uses the workflow **as it is in the tagged commit**: tagging an old commit that has no `release.yml` does nothing.
 - If CI fails on a tag, the tag stays on GitHub but there's no release: fix it and release the next number (`v0.14.1`); never reuse a version number.
+- **Jobs run in parallel** (each on its own runner), whatever their order in the file; only `needs` orders them. **Steps** inside a job run in order, one after the other.
+
+#### Bash in `run: |` (the runner is Linux)
+| Bash | What it does | JS |
+|---|---|---|
+| `run: \|` | YAML: several lines of commands | a `{ ... }` block |
+| `cat VERSION` | prints the file's content | `readFile("VERSION")` |
+| `"v$(cat VERSION)"` | `$( )` is replaced by the command's output; parts are joined just by writing them together → `v0.14.1` | `` `v${version}` `` |
+| `name="..."` | creates a variable (**no spaces** around `=`) | `const name = "..."` |
+| `"$name"` | reads it (quoted, to be safe) | `name` |
+| `if [ "$a" != "$b" ]; then ... fi` | an if; spaces inside `[ ]` are required; `fi` closes it | `if (a !== b) { ... }` |
+| `echo "text $name"` | writes a line to the log | `` console.log(`text ${name}`) `` |
+| `exit 1` | ends with an error: the step is ❌ and the next steps don't run | `throw new Error()` |
+
+Inside quotes, `+` is just text: `"v + $(cat VERSION)"` gives `v + 0.14.1`.
+
+Testing the failing case without a real release: tag the branch commit with a test tag (`v9.9.9`), push it, check the run, then delete it everywhere (allowed: it was never a release):
+```powershell
+git tag -d v9.9.9                  # on the PC
+git push origin --delete v9.9.9    # on both push URLs
+```
 
 Releasing a version (after the PR is merged):
 ```powershell

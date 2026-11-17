@@ -16,7 +16,16 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Check the tag matches VERSION
+        run: |
+          expected="v$(cat VERSION)"
+          if [ "$GITHUB_REF_NAME" != "$expected" ]; then
+            echo "Version $GITHUB_REF_NAME doesn't match VERSION ($expected)"
+            exit 1
+          fi
+
       - name: Create GitHub release
         run: gh release create "$GITHUB_REF_NAME" --generate-notes
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
