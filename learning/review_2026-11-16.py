@@ -1,10 +1,10 @@
 from decimal import Decimal
 
-valor = "60,0"
+value = "60,0"
 
-a = valor
-b = {valor}
-c = f"{valor}"
+a = value
+b = {value}
+c = f"{value}"
 
 print(a)
 print(b)

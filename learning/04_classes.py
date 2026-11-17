@@ -7,18 +7,18 @@ class Animal:
 
     def weight_category(self):
         if self.live_weight < 400:
-            return "leve"
+            return "light"
         elif self.live_weight <= 600:
             return "normal"
         else:
-            return "pesado"
+            return "heavy"
 
     def is_male(self):
         return self.sex == "M"
 
-    # equivalente a toString() em PHP
+    # like __toString() in PHP or toString() in JavaScript
     def __str__(self):
-        return f"ID: {self.identification_number}, Raça: {self.breed}, Peso: {self.live_weight} kg, Sexo: {self.sex}"
+        return f"ID: {self.identification_number}, Breed: {self.breed}, Weight: {self.live_weight} kg, Sex: {self.sex}"
 
 
 class SlaughterAnimal(Animal):
@@ -42,12 +42,12 @@ animals = [
 
 for animal in animals:
     print(animal)
-    print(f"O animal é {animal.weight_category()}.")
-    print(f"Rendimento de carcaça: {animal.carcass_yield():.1f}%\n")
+    print(f"The animal is {animal.weight_category()}.")
+    print(f"Carcass yield: {animal.carcass_yield():.1f}%\n")
 
 
 avg_yield = sum(animal.carcass_yield() for animal in animals) / len(animals)
 male_count = sum(1 for animal in animals if animal.is_male())
 
-print(f"Rendimento médio de carcaça: {avg_yield:.1f}%")
-print(f"Quantidade de animais machos: {male_count}")
+print(f"Average carcass yield: {avg_yield:.1f}%")
+print(f"Number of male animals: {male_count}")

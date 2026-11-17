@@ -9,6 +9,6 @@ animals = [
 ]
 
 for animal in animals:
-    print(f"Rendimento de carcaça: {animal.carcass_yield():.1f}%\n")
+    print(f"Carcass yield: {animal.carcass_yield():.1f}%\n")
 
 print(date.today())

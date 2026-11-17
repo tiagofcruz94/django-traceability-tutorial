@@ -1,4 +1,4 @@
-# Ferramentas de desenvolvimento (não são precisas para correr a aplicação)
+# Development tools (not needed to run the application)
 -r requirements.txt
 ruff
 djlint

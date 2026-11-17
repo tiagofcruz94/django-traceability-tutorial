@@ -19,7 +19,7 @@
         "editor.formatOnSave": true
     },
     "files.associations": {
-        "**/aprender/*.html": "django-html"
+        "**/learning/*.html": "django-html"
     },
     "emmet.includeLanguages": {
         "django-html": "html"

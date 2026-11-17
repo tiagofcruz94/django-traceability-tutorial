@@ -28,11 +28,11 @@ animals = [
 
 def weight_category(weight):
     if weight < 400:
-        return "leve"
+        return "light"
     elif weight <= 600:
         return "normal"
     else:
-        return "pesado"
+        return "heavy"
 
 
 def format_weight(weight, unit="kg", decimals=1):
@@ -49,12 +49,12 @@ def average_weight(animals):
 for animal in animals:
     weight = animal["live_weight"]
 
-    print(f"ID do animal: {animal['identification_number']}")
-    print(f"Raça: {animal['breed']}")
-    print(f"Peso: {format_weight(weight, decimals=0)}")
-    print(f"O animal é {weight_category(weight)}.\n")
+    print(f"Animal ID: {animal['identification_number']}")
+    print(f"Breed: {animal['breed']}")
+    print(f"Weight: {format_weight(weight, decimals=0)}")
+    print(f"The animal is {weight_category(weight)}.\n")
 
 avg = average_weight(animals)
 
-print(f"Peso médio: {format_weight(avg)}")
-print(f"Peso médio (0 casas decimais): {format_weight(avg, decimals=0)}")
+print(f"Average weight: {format_weight(avg)}")
+print(f"Average weight (0 decimal places): {format_weight(avg, decimals=0)}")

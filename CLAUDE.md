@@ -7,7 +7,7 @@ Company-specific context (the real project, the factory process, servers) lives 
 ## Language
 - **Always reply in European Portuguese (PT-PT)**, never Brazilian Portuguese.
 - **PT-PT only for the application itself** (UI, `verbose_name`, choice labels, messages) and for **end-user documentation** (operator manual).
-- **Everything else in English** (decided 2026-11-17): code, comments, docstrings, README, `docs/`, ADRs, commit messages, CI, this file and `aprender/GUIA.md` (to be translated; older parts may still be in Portuguese).
+- **Everything else in English** (decided 2026-11-17): code, comments, docstrings, README, `docs/`, ADRs, commit messages, CI, this file, `learning/GUIDE.md` and the exercises in `learning/`.
 
 ## Code conventions
 - Names in code in English (`Animal`, `Carcass`, `identification_number`, `Sex.MALE`).
@@ -20,6 +20,7 @@ Company-specific context (the real project, the factory process, servers) lives 
 - Environment: Windows, PowerShell, VSCode, Chrome.
 - Cares a lot about clean, organised code (clean code course, used Prettier). In reviews, also point out readability and naming, not only whether it works.
 - For technical decisions, present **options with pros and cons** for him to choose; don't decide alone.
+- **Always prefer the cleanest option** (2026-11-17). His suggestions are not binding: if a cleaner one exists, recommend it and say why; he usually takes it.
 - Some web design background (worked with designers for years), not a designer. Wants to build the UI himself, with Claude proposing concrete visual options.
 
 ## How the tutorial works
@@ -30,9 +31,9 @@ Company-specific context (the real project, the factory process, servers) lives 
 - **Honest pushback** (asked 2026-11-17): don't agree just to agree. Say plainly when he's wrong, and when the fault is Claude's, say that too. Nudge him to **self-check** (open in Chrome, run the test, preview) before asking "is it right?".
 - Small steps, one at a time. Comparisons preferably with **SQL/MySQL** and **JS/Vue** (not `php artisan`/tinker, he barely used them). The "colleague/robot user" analogy works for tests: arrange → act → assert; in asserts, the text you'd read on screen.
 - **He wants as much relevant knowledge as possible before the real project.** Don't suggest starting it until he's ready for its v0.1; when Claude thinks he is, say so and explain why. At that point, re-enable VSCode inline suggestions (`editor.inlineSuggest.enabled` in `.vscode/settings.json`), disabled while he learns.
-- At the end of each step, Claude adds the new commands and concepts to [aprender/GUIA.md](aprender/GUIA.md) (his reference document).
+- At the end of each step, Claude adds the new commands and concepts to [learning/GUIDE.md](learning/GUIDE.md) (his reference document).
 - **Quizzes** at the end of each block: multiple choice; he prefers all 12 questions at once in text and answers like `1A 2C ...`. **Repeat cumulative quizzes until 12/12**; never suggest stopping because of fatigue. **Correct answers at random positions** (no balanced A/B/C/D per block; repeats allowed): he noticed the pattern and could deduce answers by elimination. For missed questions, write the code by hand until right. He sometimes swaps letters when typing answers.
-- Review/practice files in `aprender/` carry the ISO date in the name: `revisao_2026-11-16.py`.
+- Review/practice files in `learning/` carry the ISO date in the name: `review_2026-11-16.py`.
 
 ## Git
 - Claude makes a **local commit at the end of each working step** and updates "Where we are". He pushes (Sync) once a day, at the end of the day.
@@ -59,7 +60,8 @@ Company-specific context (the real project, the factory process, servers) lives 
 - Tutorial blocks done: models, migrations, admin, relations, ORM, views/templates, tests, validation, forms (incl. pt-PT decimals), CI (workflow, a deliberate failure).
 - **2026-11-17:** moved to this new public-to-be repository (`django-traceability-tutorial`, still **private** on GitHub), from a clean copy without the old history. First commit v0.12.0, CI ✅.
 - **README done** (v0.12.2): he wrote title, badge, description, install and test sections; Claude restructured install into shared blocks + per-OS venv step (option B, at his request).
-- **Next:** translate `aprender/GUIA.md` to English (add: URLs are not folders, Markdown badge syntax); make the repository public only after checking it (`gh repo edit --visibility public --accept-visibility-change-consequences`); then the rest of the CI block: branch protection (free on public repos), releases on `vX.Y.Z` tags.
+- **English everywhere done** (v0.12.3): `aprender/` → `learning/`, `GUIA.md` → `GUIDE.md` (translated, sections renumbered 1–12, new: URLs are not folders, Markdown/README), `revisao_*` → `review_*` ("revision" is a false friend), exercises and config comments translated.
+- **Next:** make the repository public only after checking it (`gh repo edit --visibility public --accept-visibility-change-consequences`); then the rest of the CI block: branch protection (free on public repos), releases on `vX.Y.Z` tags.
 - Watch out: after renaming or moving a file, the old editor tab stays open and autosave recreates the old file; remind him to close it.
 - Later: design the real domain model (receiving carcass quarters, suppliers) and decide the front-end approach.
 

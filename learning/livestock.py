@@ -7,18 +7,18 @@ class Animal:
 
     def weight_category(self):
         if self.live_weight < 400:
-            return "leve"
+            return "light"
         elif self.live_weight <= 600:
             return "normal"
         else:
-            return "pesado"
+            return "heavy"
 
     def is_male(self):
         return self.sex == "M"
 
-    # equivalente a toString() em PHP
+    # like __toString() in PHP or toString() in JavaScript
     def __str__(self):
-        return f"ID: {self.identification_number}, Raça: {self.breed}, Peso: {self.live_weight} kg, Sexo: {self.sex}"
+        return f"ID: {self.identification_number}, Breed: {self.breed}, Weight: {self.live_weight} kg, Sex: {self.sex}"
 
 
 class SlaughterAnimal(Animal):

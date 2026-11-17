@@ -1,14 +1,14 @@
-# Python: ficheiros compilados gerados automaticamente
+# Python: automatically generated compiled files
 __pycache__/
 *.py[cod]
 
-# Ambiente virtual
+# Virtual environment
 .venv/
 
-# Base de dados local (SQLite): contém dados e o hash da palavra-passe do admin
+# Local database (SQLite): holds data and the admin password hash
 db.sqlite3
 
-# Variáveis de ambiente / segredos
+# Environment variables / secrets
 .env
 
 # Internal notes (company context, server): stay on the PC and in the daily copy to the server

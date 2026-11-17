@@ -31,23 +31,23 @@ total_weight = 0
 for animal in animals:
     weight = animal["live_weight"]
 
-    print(f"ID do animal: {animal['identification_number']}")
-    print(f"Raça: {animal['breed']}")
-    print(f"Peso: {weight}")
+    print(f"Animal ID: {animal['identification_number']}")
+    print(f"Breed: {animal['breed']}")
+    print(f"Weight: {weight}")
 
     total_weight += weight
 
     if weight < 400:
-        print("O animal é leve.\n")
+        print("The animal is light.\n")
     elif weight <= 600:
-        print("O animal é normal.\n")
+        print("The animal is normal.\n")
     else:
-        print("O animal é pesado.\n")
+        print("The animal is heavy.\n")
 
     if animal["sex"] == "M":
         male_count += 1
 
 avg_weight = total_weight / len(animals)
-print(f"\nTotal de animais: {len(animals)}")
-print(f"Soma dos pesos: {total_weight} e média dos pesos: {avg_weight:.1f}")
-print(f"Total de animais machos: {male_count}")
+print(f"\nNumber of animals: {len(animals)}")
+print(f"Total weight: {total_weight}, average weight: {avg_weight:.1f}")
+print(f"Number of male animals: {male_count}")

@@ -1,5 +1,5 @@
-# Configuração do djLint (formatação dos templates Django).
-# O Ruff tem a configuração dele em ruff.toml.
+# djLint configuration (Django template formatting).
+# Ruff has its own configuration in ruff.toml.
 [tool.djlint]
 profile = "django"
 indent = 4
