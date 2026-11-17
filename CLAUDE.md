@@ -37,6 +37,7 @@ Company-specific context (the real project, the factory process, servers) lives 
 
 ## Git
 - Claude makes a **local commit at the end of each working step** and updates "Where we are". He pushes (Sync) once a day, at the end of the day.
+- **`main` is protected** (decided 2026-11-17, strict, no bypass): every step happens on its own branch (`step/<short-name>`); Claude commits there. At the end of the step: push the branch, open a PR, wait for CI ✅, merge. `main` only changes through merges.
 - Commit messages in English. First line: SemVer version + date + summary, e.g. `v0.12.0 (2026-11-17): Start public tutorial repository`. The version lives in `VERSION` and goes up on every commit: **middle number** for a new feature or tutorial step (`0.1.0 → 0.2.0`), **last number** for a fix or tweak (`0.2.0 → 0.2.1`). Stays `0.x` while it's a prototype.
 - Commit email in this repository: the GitHub noreply address (set with `git config user.email`, local to the repo).
 
@@ -65,6 +66,7 @@ Company-specific context (the real project, the factory process, servers) lives 
 - **Second push address done** (2026-11-17): Sync pushes to GitHub and to a bare repository on the company server (details in `CLAUDE.local.md`).
 - **Next:** the rest of the CI block: branch protection (free on public repos), releases on `vX.Y.Z` tags.
 - Watch out: after renaming or moving a file, the old editor tab stays open and autosave recreates the old file; remind him to close it.
+- **Docker** (2026-11-17): not in this tutorial. In the real project, first use = PostgreSQL in development (`docker compose`); server with or without Docker decided later, in the real project's repository. Never for the station agent (needs USB/serial). Testing tools explained: unittest/pytest, Jest/Vitest, PHPUnit/Pest; unit vs integration vs E2E (Playwright, Cypress).
 - Later: design the real domain model (receiving carcass quarters, suppliers) and decide the front-end approach.
 
 ## Setting up on a new machine
