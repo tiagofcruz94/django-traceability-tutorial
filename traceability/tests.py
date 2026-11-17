@@ -184,7 +184,7 @@ class CarcassValidationTests(TestCase):
 
 
 class CarcassCreateViewTests(TestCase):
-    """Tests the carcass_create view where new carcasses are added."""
+    """Tests for the carcass_create view where new carcasses are added."""
 
     def setUp(self):
         self.animal = Animal.objects.create(
@@ -236,3 +236,13 @@ class CarcassCreateViewTests(TestCase):
 
         self.assertRedirects(response, reverse("traceability:lot_list"))
         self.assertEqual(Carcass.objects.count(), 1)
+
+
+class HomeRedirectTests(TestCase):
+    """Tests for the redirect from the root address to the lot list view."""
+
+    def test_root_redirects_to_lot_list(self):
+        url = "/"
+        response = self.client.get(url)
+
+        self.assertRedirects(response, reverse("traceability:lot_list"))
