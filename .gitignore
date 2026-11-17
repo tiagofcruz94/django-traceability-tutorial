@@ -11,5 +11,5 @@ db.sqlite3
 # Variáveis de ambiente / segredos
 .env
 
-# Notas internas (contexto da empresa, servidor): ficam só no PC e na cópia diária para o servidor
-CLAUDE.md
+# Internal notes (company context, server): stay on the PC and in the daily copy to the server
+CLAUDE.local.md
