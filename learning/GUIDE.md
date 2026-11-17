@@ -1113,3 +1113,61 @@ python manage.py createsuperuser
 - If `activate` fails with "running scripts is disabled": `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` (once per machine).
 - **Two destinations in one Sync:** `origin` can have two push addresses (`git remote set-url --add --push origin <address>`), e.g. GitHub and a "bare" git repository on a shared folder (a bare repository only has the history, no visible files). To see the addresses: `git remote -v`. The actual addresses are in the local notes.
 - Commit messages in **English**, with version and date: `v0.1.0 (2026-11-13): Add Lots link to admin header` (see `VERSION` and `CLAUDE.md`).
+
+## 13. Authentication (login)
+
+`django.contrib.auth` (already in `INSTALLED_APPS`, it's what the admin uses) brings the `User` model and ready-made login/logout views.
+
+### URLs, settings, template
+```python
+# config/urls.py: one line, same shape as the app's include (module path as text, no import)
+path("contas/", include("django.contrib.auth.urls")),   # contas/login/ (name "login"), contas/logout/ ("logout"), password change...
+
+# config/settings.py: URL **names** (like reverse), not paths
+LOGIN_URL = "login"                                  # where @login_required sends anonymous users (default: /accounts/login/)
+LOGIN_REDIRECT_URL = "traceability:lot_list"         # after logging in
+LOGOUT_REDIRECT_URL = "login"                        # after logging out
+```
+The login view looks for a fixed template name: `templates/registration/login.html`, which just shows `{{ form }}` inside a POST form with `{% csrf_token %}`.
+
+How `{{ form }}` knows the fields: `LoginView` has `form_class = AuthenticationForm` (fields `username` and `password`) and `template_name = "registration/login.html"`; its parent `FormView` passes the form to the template as `form`. The same three things your `carcass_create` view does by hand.
+
+- `django.contrib.auth.login(request, user)` is **not a view**: it's the function that marks a user as logged in, called inside the login view.
+- A path (`"lotes/"`, what the browser shows) is not a name (`"traceability:lot_list"`, what code uses).
+- Wrong password → **200** with the form's error message. A **403** after going *back* to the login page is CSRF: Django changes the token on login, and the page the browser kept still has the old one.
+- With `DEBUG = True`, a missing template shows the yellow debug page; the status is **500** (F12 → Network).
+
+### Closing pages: `@login_required`
+```python
+from django.contrib.auth.decorators import login_required
+
+
+@login_required
+def lot_list(request):
+    ...
+```
+A **decorator** (`@...` above a function, like `@admin.display`) adds behaviour without touching the function's code. Anonymous user → the view doesn't run; **302** to `/contas/login/?next=%2Flotes%2F` (`%2F` = `/`); after logging in, `next` brings them back. Similar to a Vue Router `beforeEach` guard.
+
+### Tests with a logged-in robot
+```python
+class LoggedInTestCase(TestCase):
+    """Base class for tests that need a logged-in user."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(username="operador", password="segredo123")
+        self.client.force_login(self.user)
+
+
+class LotViewTests(LoggedInTestCase):
+    def setUp(self):
+        super().setUp()          # a child setUp REPLACES the parent's: call it, or there's no login
+        ...
+
+
+class HomeRedirectTests(LoggedInTestCase):
+    ...                          # no setUp of its own: inherits the parent's as it is
+```
+- Tests use an **empty test database**, created and destroyed on each run: `create_user` creates the user there (your `db.sqlite3` is never touched).
+- `create_user`, not `create`: it stores the password **hashed**. Hashing is slow on purpose (tests went from 0.05 s to ~2 s).
+- `force_login` logs in without the form (doesn't check the password).
+- Without login, view tests fail with **302** (sent to the login page), not 500: a 500 is a bug in the code.

@@ -1,12 +1,21 @@
 from datetime import date
 from decimal import Decimal
 
+from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
 from .models import Animal, Carcass, DeboningLot
+
+
+class LoggedInTestCase(TestCase):
+    """Base class for tests that need a logged-in user."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(username="operador", password="segredo123")
+        self.client.force_login(self.user)
 
 
 class DeboningLotTests(TestCase):
@@ -57,10 +66,11 @@ class DeboningLotTests(TestCase):
         self.assertEqual(lot.total_hot_weight(), Decimal("380.5"))
 
 
-class LotViewTests(TestCase):
+class LotViewTests(LoggedInTestCase):
     """Tests for the lot list and lot detail pages."""
 
     def setUp(self):
+        super().setUp()
         # Two carcasses (200.0 + 180.5), so the total 380.5 can't be mistaken for either weight.
         self.lot = DeboningLot.objects.create(lot_number="T100")
 
@@ -183,10 +193,11 @@ class CarcassValidationTests(TestCase):
         self.assertEqual(carcass3.carcass_yield(), Decimal("55.0"))
 
 
-class CarcassCreateViewTests(TestCase):
+class CarcassCreateViewTests(LoggedInTestCase):
     """Tests for the carcass_create view where new carcasses are added."""
 
     def setUp(self):
+        super().setUp()
         self.animal = Animal.objects.create(
             identification_number="PT0001",
             sex=Animal.Sex.MALE,
@@ -238,7 +249,7 @@ class CarcassCreateViewTests(TestCase):
         self.assertEqual(Carcass.objects.count(), 1)
 
 
-class HomeRedirectTests(TestCase):
+class HomeRedirectTests(LoggedInTestCase):
     """Tests for the redirect from the root address to the lot list view."""
 
     def test_root_redirects_to_lot_list(self):
