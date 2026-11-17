@@ -927,6 +927,7 @@ on:                          # the "trigger": when it runs
   push:
     branches: [main]
   pull_request:
+  workflow_call:             # another workflow (release.yml) can call this one
 
 jobs:
   test:
@@ -970,6 +971,53 @@ gh run view <id> --log-failed  # only the log of the failed steps
 gh run watch <id>              # follow a run live
 ```
 The Actions page doesn't always refresh by itself: F5 (it's a GET, it's safe).
+
+### Releases on tags (CD): `.github/workflows/release.yml`
+Pushing a `vX.Y.Z` tag runs the CI on that commit and, if it passes, creates a **GitHub Release** (a page with the version, notes generated from the PR titles, and the code as `.zip`/`.tar.gz`).
+```yaml
+name: Release
+
+on:
+  push:
+    tags: ["v*"]               # any tag starting with "v"; "*" = anything (quoted: special in YAML)
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml   # calls the CI (a real file path in the repository, from the root "./")
+
+  release:
+    needs: ci                  # waits for the ci job and runs only if it passed (otherwise: "skipped")
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write          # creating a release writes to the repository; only this job gets it
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Create GitHub release
+        run: gh release create "$GITHUB_REF_NAME" --generate-notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+- **Triggers are a fixed list** from GitHub (`push`, `pull_request`, `workflow_call`, `workflow_dispatch`...): you choose the workflow and job names, not the trigger names. `workflow_dispatch:` adds a "Run workflow" button.
+- **Triggers are doors:** adding `workflow_call:` doesn't close `push`/`pull_request`; the PR check `test` runs as before.
+- **`branches: [...]` / `tags: [...]`**: a fixed name (`"v0.14.0"`, only that one) or a pattern (`"v*"`, all versions).
+- **`needs: ci`** (one job) or **`needs: [lint, test]`** (several).
+- **`GITHUB_TOKEN`**: a temporary key GitHub creates for each run; `gh` reads it from the `GH_TOKEN` environment variable. `${{ }}` is GitHub's expression syntax (looks like Django's `{{ }}`, same idea, different tool).
+- **`$GITHUB_REF_NAME`**: the name of the tag that started the run. In bash a variable is read with `$NAME` (PowerShell: `$env:NAME`).
+- A tag uses the workflow **as it is in the tagged commit**: tagging an old commit that has no `release.yml` does nothing.
+- If CI fails on a tag, the tag stays on GitHub but there's no release: fix it and release the next number (`v0.14.1`); never reuse a version number.
+
+Releasing a version (after the PR is merged):
+```powershell
+git switch main
+git pull
+git tag v0.14.0              # sticks the label on the current commit
+git push origin v0.14.0      # sends the tag → starts the Release workflow
+gh run watch                 # follow it live
+gh release view v0.14.0      # the release, in the terminal
+```
+
+**CI vs CD:** CI = every PR is tested and `main` only gets what passes. CD = Continuous **Delivery** (every version is tested and packaged automatically, ready to install: this workflow) or Continuous **Deployment** (installed on the server automatically: not here; the server is on a local network that GitHub can't reach, so it would need a *self-hosted runner* or a script on the server).
 
 ---
 
