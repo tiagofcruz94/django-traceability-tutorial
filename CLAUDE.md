@@ -61,7 +61,9 @@ Company-specific context (the real project, the factory process, servers) lives 
 - **2026-11-17:** moved to this new public-to-be repository (`django-traceability-tutorial`, still **private** on GitHub), from a clean copy without the old history. First commit v0.12.0, CI ✅.
 - **README done** (v0.12.2): he wrote title, badge, description, install and test sections; Claude restructured install into shared blocks + per-OS venv step (option B, at his request).
 - **English everywhere done** (v0.12.3): `aprender/` → `learning/`, `GUIA.md` → `GUIDE.md` (translated, sections renumbered 1–12, new: URLs are not folders, Markdown/README), `revisao_*` → `review_*` ("revision" is a false friend), exercises and config comments translated.
-- **Next:** make the repository public only after checking it (`gh repo edit --visibility public --accept-visibility-change-consequences`); then the rest of the CI block: branch protection (free on public repos), releases on `vX.Y.Z` tags.
+- **Repository public** (2026-11-17, after v0.12.3): full-history search found no company identifiers (only the generic word "factory"); CI ✅; the badge is visible to everyone.
+- **Second push address done** (2026-11-17): Sync pushes to GitHub and to a bare repository on the company server (details in `CLAUDE.local.md`).
+- **Next:** the rest of the CI block: branch protection (free on public repos), releases on `vX.Y.Z` tags.
 - Watch out: after renaming or moving a file, the old editor tab stays open and autosave recreates the old file; remind him to close it.
 - Later: design the real domain model (receiving carcass quarters, suppliers) and decide the front-end approach.
 
