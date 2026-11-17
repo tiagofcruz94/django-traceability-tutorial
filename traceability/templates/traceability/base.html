@@ -1,0 +1,37 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-PT">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>{% block title %}Rastreabilidade{% endblock %} · Protótipo</title>
+        <link rel="stylesheet"
+              href="{% static 'traceability/css/pico.classless.min.css' %}">
+        <link rel="stylesheet" href="{% static 'traceability/css/style.css' %}">
+    </head>
+    <body>
+        <header>
+            <nav>
+                <ul>
+                    <li><strong>Protótipo · Rastreabilidade</strong></li>
+                </ul>
+                <ul>
+                    <li>
+                        <a href="{% url 'traceability:lot_list' %}">Lotes</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'admin:index' %}">Administração</a>
+                    </li>
+                </ul>
+            </nav>
+        </header>
+        <main>
+            {# One-time messages (e.g. after saving a form); here so every page can show them. #}
+            {% for message in messages %}
+                <article>{{ message }}</article>
+            {% endfor %}
+            {% block content %}{% endblock %}
+        </main>
+    </body>
+</html>

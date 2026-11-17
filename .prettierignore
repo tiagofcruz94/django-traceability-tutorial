@@ -1,0 +1,3 @@
+# Ficheiros que o Prettier não deve formatar
+**/*.min.css
+**/*.min.js

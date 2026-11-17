@@ -1,0 +1,11 @@
+{% extends "traceability/base.html" %}
+
+{% block title %}Nova carcaça{% endblock %}
+{% block content %}
+    <h1>Nova carcaça</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form }}
+        <button type="submit">Guardar</button>
+    </form>
+{% endblock %}

@@ -1,0 +1,13 @@
+# Configuração do Ruff (formatação e linter). Aspas: o padrão (duplas).
+
+# As migrations são geradas pelo Django: não se formatam nem se editam à mão.
+extend-exclude = ["*/migrations/*"]
+
+[lint]
+# aprender/ é material de estudo, com experiências de propósito "erradas"; não é a aplicação.
+# Só fica de fora do lint: o Ctrl+S continua a formatar esses ficheiros.
+exclude = ["aprender/*"]
+ignore = [
+    "RUF012",   # list_display = [...] no admin e nas migrations: é o padrão do Django
+    "FURB157",  # sugere Decimal(45) em vez de Decimal("45"); a regra do projeto é criar sempre a partir de texto
+]

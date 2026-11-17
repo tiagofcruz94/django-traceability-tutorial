@@ -1,0 +1,30 @@
+{% extends "traceability/base.html" %}
+
+{% block title %}Lotes de desmancha{% endblock %}
+{% block content %}
+    <h1>Lotes de desmancha</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>N.º de lote</th>
+                <th>Criado em</th>
+                <th>Carcaças</th>
+                <th>Peso total (kg)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for lot in lots %}
+                <tr>
+                    <td><a href="{% url 'traceability:lot_detail' lot.pk %}">{{ lot.lot_number }}</a></td>
+                    <td>{{ lot.created_at|date:"d/m/Y H:i" }}</td>
+                    <td>{{ lot.carcasses.count }}</td>
+                    <td>{{ lot.total_hot_weight|floatformat:1 }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="4">Ainda não há lotes.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

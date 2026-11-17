@@ -1,0 +1,37 @@
+{% extends "traceability/base.html" %}
+
+{% block title %}Lote {{ lot.lot_number }}{% endblock %}
+{% block content %}
+    <h1>Lote {{ lot.lot_number }}</h1>
+    <p>Criado em {{ lot.created_at|date:"d/m/Y H:i" }}</p>
+    <table>
+        <thead>
+            <tr>
+                <th>N.º de abate</th>
+                <th>Animal</th>
+                <th>Peso a quente (kg)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for carcass in lot.carcasses.all %}
+                <tr>
+                    <td>{{ carcass.slaughter_number }}</td>
+                    <td>{{ carcass.animal.identification_number }}</td>
+                    <td>{{ carcass.hot_weight }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="3">Sem carcaças.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        {% if lot.carcasses.exists %}
+            <tfoot>
+                <tr>
+                    <th colspan="2">Peso total do lote:</th>
+                    <th>{{ lot.total_hot_weight|floatformat:1 }}</th>
+                </tr>
+            </tfoot>
+        {% endif %}
+    </table>
+{% endblock %}

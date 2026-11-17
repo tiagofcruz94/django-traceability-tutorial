@@ -1,0 +1,7 @@
+{% extends "admin/base_site.html" %}
+
+{# Same path as Django's template: extends the original and only adds a link to the header. #}
+{% block userlinks %}
+    <a href="{% url 'traceability:lot_list' %}" target="_blank">Lotes</a> /
+    {{ block.super }}
+{% endblock %}
