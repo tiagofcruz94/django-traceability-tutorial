@@ -448,6 +448,32 @@ urlpatterns = [
 - Addresses the user sees are in Portuguese (`lotes/`).
 - `<int:pk>` captures a whole number and passes it to the view as `pk`. The detail page uses the `pk` and not the lot number, because real lot numbers contain `/`.
 - `get_object_or_404(DeboningLot, pk=pk)` returns the object or a 404 page (instead of a 500 error).
+- Paths have **no leading slash**: Django strips it from the request before matching, so the root address is `""`, not `"/"` (`"/"` raises warning `urls.W002` and never matches).
+
+### Redirecting an address: `RedirectView`
+```python
+from django.views.generic import RedirectView
+
+urlpatterns = [
+    path("", RedirectView.as_view(pattern_name="traceability:lot_list"), name="home"),
+    ...
+]
+```
+- Django ships ready-made **class-based views** for repetitive jobs (lists, forms, redirects). `.as_view(...)` turns the class into the function `path` expects; its arguments configure it.
+- `pattern_name` is the destination's URL **name**, with the namespace (`"traceability:..."`, because of `app_name`). Without it: `NoReverseMatch`.
+- Name the URL by its **intention** (`home`), not its mechanism (`root_redirect`): when a real home page replaces the redirect, the name and every `{% url 'traceability:home' %}` stay valid.
+
+| Code | Means | The browser… |
+|---|---|---|
+| **302** (temporary, `RedirectView`'s default) | "Go there for now" | Asks again next time |
+| **301** (permanent, `permanent=True`) | "Moved for good" | **Caches** it and stops asking: hard to undo on every PC |
+
+Test it with the address written by hand (it's what a user types) and the destination through `reverse`:
+```python
+response = self.client.get("/")
+
+self.assertRedirects(response, reverse("traceability:lot_list"))  # checks the 302 too
+```
 
 ### ⚠️ A URL path is not a folder path
 In `/lotes/5/` there is no `lotes` folder with a `5` folder inside: the server takes the text, matches it against its routes (`lotes/<int:pk>/`) and `5` is just a **value** for the view. Every website works like this. GitHub's CI badge, `.../actions/workflows/ci.yml/badge.svg`, has no `badge.svg` file stored anywhere: `ci.yml` says which workflow, and the image is drawn on the fly from the latest run. On disk, `/` separates folders; in a URL, `/` separates pieces of text that the server interprets.
@@ -975,6 +1001,25 @@ The `README.md` is the repository's front page on GitHub.
 - `db.sqlite3`, `.venv` and `__pycache__` don't go into git (see `.gitignore`).
 - Migrations **do** go into git.
 - `git mv old new` renames a file and keeps its history; `git restore <file>` throws away uncommitted changes.
+
+### Branches and pull requests (protected `main`)
+`main` only accepts changes through a **pull request** (PR) whose CI is ✅ (ruleset "Protect main", no bypass). The server mirror imitates it with a hook.
+
+```powershell
+git switch -c step/short-name              # 1. new branch (prefix: step/, feature/, fix/, hotfix/, docs/, chore/)
+# ... work, commit ...
+git push -u origin step/short-name         # 2. first push: -u links the branch; afterwards just `git push`
+gh pr create --fill                        # 3. open the PR (title and body from the commit)
+gh pr checks --watch                       # 4. follow the CI
+gh pr edit <n> --title "vX.Y.Z (date): ..." # 5. CHECK THE TITLE: it becomes the commit message on main
+gh pr merge <n> --squash --delete-branch   # 6. merge, delete the branch, switch to main and pull
+git fetch --prune                          # 7. forget remote branches that no longer exist
+```
+- A push to a branch always works, even with broken code. What CI ❌ blocks is the **merge**. Without the protection, CI would only warn and the merge button would still work.
+- **Squash** (the only method allowed): the whole PR becomes one commit on `main`, so one PR = one step = one version, and the "Revert" button undoes a whole feature.
+- `git push` sends the current branch only; `git push origin --all` sends every branch (useful to fill an empty mirror, not day to day); tags go with `git push --tags`.
+- Versions are marked with **tags** (`v0.1.0`), not branches: a tag never moves. `git tag` lists them, `git log v0.1.0..v0.2.0 --oneline` shows what changed. Going back to a version (rollback) means installing an older tag; with migrations, the database must be migrated back too.
+- Keep branches short (one thing, merged quickly) to avoid merge conflicts.
 
 ### Setting up the project on a new machine
 ```powershell
