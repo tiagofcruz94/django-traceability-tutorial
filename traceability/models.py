@@ -56,7 +56,7 @@ class Carcass(models.Model):
     """The carcass of one slaughtered animal."""
 
     # Training values; confirm the real yield range with the factory.
-    MIN_YIELD = Decimal("45")
+    MIN_YIELD = Decimal("20")
     MAX_YIELD = Decimal("70")
 
     animal = models.OneToOneField(
