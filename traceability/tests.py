@@ -1,12 +1,21 @@
 from datetime import date
 from decimal import Decimal
 
+from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
 from .models import Animal, Carcass, DeboningLot
+
+
+class LoggedInTestCase(TestCase):
+    """Base class for tests that need a logged-in user."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(username="operador", password="segredo123")
+        self.client.force_login(self.user)
 
 
 class DeboningLotTests(TestCase):
@@ -57,10 +66,11 @@ class DeboningLotTests(TestCase):
         self.assertEqual(lot.total_hot_weight(), Decimal("380.5"))
 
 
-class LotViewTests(TestCase):
+class LotViewTests(LoggedInTestCase):
     """Tests for the lot list and lot detail pages."""
 
     def setUp(self):
+        super().setUp()
         # Two carcasses (200.0 + 180.5), so the total 380.5 can't be mistaken for either weight.
         self.lot = DeboningLot.objects.create(lot_number="T100")
 
@@ -183,10 +193,11 @@ class CarcassValidationTests(TestCase):
         self.assertEqual(carcass3.carcass_yield(), Decimal("55.0"))
 
 
-class CarcassCreateViewTests(TestCase):
+class CarcassCreateViewTests(LoggedInTestCase):
     """Tests for the carcass_create view where new carcasses are added."""
 
     def setUp(self):
+        super().setUp()
         self.animal = Animal.objects.create(
             identification_number="PT0001",
             sex=Animal.Sex.MALE,
@@ -238,7 +249,7 @@ class CarcassCreateViewTests(TestCase):
         self.assertEqual(Carcass.objects.count(), 1)
 
 
-class HomeRedirectTests(TestCase):
+class HomeRedirectTests(LoggedInTestCase):
     """Tests for the redirect from the root address to the lot list view."""
 
     def test_root_redirects_to_lot_list(self):
@@ -246,3 +257,41 @@ class HomeRedirectTests(TestCase):
         response = self.client.get(url)
 
         self.assertRedirects(response, reverse("traceability:lot_list"))
+
+
+class LoginRequiredTests(TestCase):
+    """Tests that pages redirect anonymous users to the login page."""
+
+    def test_lot_list_sends_anonymous_user_to_login(self):
+        response = self.client.get(reverse("traceability:lot_list"))
+
+        self.assertRedirects(response, "/contas/login/?next=%2Flotes%2F")
+
+    def test_lot_detail_sends_anonymous_user_to_login(self):
+        response = self.client.get(reverse("traceability:lot_detail", args=[1]))
+
+        self.assertRedirects(response, "/contas/login/?next=%2Flotes%2F1%2F")
+
+    def test_carcass_create_sends_anonymous_user_to_login(self):
+        response = self.client.get(reverse("traceability:carcass_create"))
+
+        self.assertRedirects(response, "/contas/login/?next=%2Fcarcacas%2Fnova%2F")
+
+
+class NavigationMenuTests(LoggedInTestCase):
+    """Tests that the menu shows the username and lets them log out."""
+
+    def test_menu_shows_username(self):
+        response = self.client.get(reverse("traceability:lot_list"))
+
+        self.assertContains(response, "operador")
+
+    def test_logout_sends_user_to_login(self):
+        response = self.client.post(reverse("logout"))
+
+        self.assertRedirects(response, "/contas/login/")
+
+    def test_logout_hides_logout_button(self):
+        response = self.client.post(reverse("logout"), follow=True)
+
+        self.assertNotContains(response, "Terminar sessão")

@@ -13,3 +13,6 @@ db.sqlite3
 
 # Internal notes (company context, server): stay on the PC and in the daily copy to the server
 CLAUDE.local.md
+
+# Personal Claude Code settings for this project
+.claude/settings.local.json

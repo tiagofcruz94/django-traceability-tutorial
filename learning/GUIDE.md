@@ -1113,3 +1113,109 @@ python manage.py createsuperuser
 - If `activate` fails with "running scripts is disabled": `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` (once per machine).
 - **Two destinations in one Sync:** `origin` can have two push addresses (`git remote set-url --add --push origin <address>`), e.g. GitHub and a "bare" git repository on a shared folder (a bare repository only has the history, no visible files). To see the addresses: `git remote -v`. The actual addresses are in the local notes.
 - Commit messages in **English**, with version and date: `v0.1.0 (2026-11-13): Add Lots link to admin header` (see `VERSION` and `CLAUDE.md`).
+
+## 13. Authentication (login)
+
+`django.contrib.auth` (already in `INSTALLED_APPS`, it's what the admin uses) brings the `User` model and ready-made login/logout views.
+
+### URLs, settings, template
+```python
+# config/urls.py: one line, same shape as the app's include (module path as text, no import)
+path("contas/", include("django.contrib.auth.urls")),   # contas/login/ (name "login"), contas/logout/ ("logout"), password change...
+
+# config/settings.py: URL **names** (like reverse), not paths
+LOGIN_URL = "login"                                  # where @login_required sends anonymous users (default: /accounts/login/)
+LOGIN_REDIRECT_URL = "traceability:lot_list"         # after logging in
+LOGOUT_REDIRECT_URL = "login"                        # after logging out
+```
+The login view looks for a fixed template name: `templates/registration/login.html`, which just shows `{{ form }}` inside a POST form with `{% csrf_token %}`.
+
+How `{{ form }}` knows the fields: `LoginView` has `form_class = AuthenticationForm` (fields `username` and `password`) and `template_name = "registration/login.html"`; its parent `FormView` passes the form to the template as `form`. The same three things your `carcass_create` view does by hand.
+
+- `django.contrib.auth.login(request, user)` is **not a view**: it's the function that marks a user as logged in, called inside the login view.
+- A path (`"lotes/"`, what the browser shows) is not a name (`"traceability:lot_list"`, what code uses).
+- Wrong password → **200** with the form's error message. A **403** after going *back* to the login page is CSRF: Django changes the token on login, and the page the browser kept still has the old one.
+- With `DEBUG = True`, a missing template shows the yellow debug page; the status is **500** (F12 → Network).
+
+### Closing pages: `@login_required`
+```python
+from django.contrib.auth.decorators import login_required
+
+
+@login_required
+def lot_list(request):
+    ...
+```
+A **decorator** (`@...` above a function, like `@admin.display`) adds behaviour without touching the function's code. Anonymous user → the view doesn't run; **302** to `/contas/login/?next=%2Flotes%2F` (`%2F` = `/`); after logging in, `next` brings them back. Similar to a Vue Router `beforeEach` guard.
+
+### Tests with a logged-in robot
+```python
+class LoggedInTestCase(TestCase):
+    """Base class for tests that need a logged-in user."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(username="operador", password="segredo123")
+        self.client.force_login(self.user)
+
+
+class LotViewTests(LoggedInTestCase):
+    def setUp(self):
+        super().setUp()          # a child setUp REPLACES the parent's: call it, or there's no login
+        ...
+
+
+class HomeRedirectTests(LoggedInTestCase):
+    ...                          # no setUp of its own: inherits the parent's as it is
+```
+- Tests use an **empty test database**, created and destroyed on each run: `create_user` creates the user there (your `db.sqlite3` is never touched).
+- `create_user`, not `create`: it stores the password **hashed**. Hashing is slow on purpose (tests went from 0.05 s to ~2 s).
+- `force_login` logs in without the form (doesn't check the password).
+- Without login, view tests fail with **302** (sent to the login page), not 500: a 500 is a bug in the code.
+
+### Testing the protection itself
+If every test logs in first, removing a `@login_required` breaks nothing: the pages still open (200). Only a test with an **anonymous** robot notices. One per protected page (each view has its own decorator):
+```python
+class LoginRequiredTests(TestCase):          # TestCase, not LoggedInTestCase: no login
+    """Tests that pages redirect anonymous users to the login page."""
+
+    def test_lot_detail_sends_anonymous_user_to_login(self):
+        response = self.client.get(reverse("traceability:lot_detail", args=[1]))   # no lot needed
+
+        self.assertRedirects(response, "/contas/login/?next=%2Flotes%2F1%2F")
+```
+- `next` is the page the visitor came from, different in each test (written by hand).
+- No lot with pk 1 exists, and it's still 302, not 404: the decorator runs **before** the view, so `get_object_or_404` never runs.
+- Proved by commenting out the decorator: only this test fails (`200 != 302`).
+
+### Username and logout in the menu
+```django
+{% if user.is_authenticated %}
+    <li>{{ user.username }}</li>
+    <li>
+        <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit">Terminar sessão</button>
+        </form>
+    </li>
+{% endif %}
+```
+- `user` is in **every** template (like `messages`); `user.is_authenticated` is `False` for anonymous visitors.
+- **Logout is a POST, not a link**: a GET must never change anything (any site could log you out with `<img src=".../contas/logout/">`); since Django 5 a GET to logout gives `405 Method Not Allowed`.
+- `action="..."`: where the form is sent. Without it, a form posts to its own page's URL; this button is on every page but must always post to the logout URL.
+- The logout view has **no template**: it ends the session and redirects to `LOGOUT_REDIRECT_URL`.
+- Auth URL names (from `django/contrib/auth/urls.py` in `.venv`): `"login"`, `"logout"`, no namespace. In `{% url %}`, names only, never paths (`{% url '/contas/logout/' %}` → `NoReverseMatch`).
+
+```python
+class NavigationMenuTests(LoggedInTestCase):
+    """Tests that the menu shows the username and lets them log out."""
+
+    def test_logout_hides_logout_button(self):
+        response = self.client.post(reverse("logout"), follow=True)   # no form fields: nothing after the URL
+
+        self.assertNotContains(response, "Terminar sessão")
+```
+- `self.client.post(url, data)`: the second argument is the **form content** (a dict). A string there → `AttributeError: 'str' object has no attribute 'items'` (an **E**rror: the test broke before its assert, vs a **F**ail: the assert was false).
+- The robot doesn't choose where a POST ends up: the server does; `follow=True` just follows it.
+
+### Commenting code out quickly
+**Ctrl+Q** (user shortcut in `keybindings.json`; default **Ctrl+/**) toggles comments on the selected lines, in the file's language: `#` in Python, `{% comment %}...{% endcomment %}` in Django templates (the Django extension's choice). A `{# #}` typed by hand isn't removed by the shortcut. `{# #}` is for notes that stay; the shortcut is for temporary experiments.
