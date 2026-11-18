@@ -257,3 +257,41 @@ class HomeRedirectTests(LoggedInTestCase):
         response = self.client.get(url)
 
         self.assertRedirects(response, reverse("traceability:lot_list"))
+
+
+class LoginRequiredTests(TestCase):
+    """Tests that pages redirect anonymous users to the login page."""
+
+    def test_lot_list_sends_anonymous_user_to_login(self):
+        response = self.client.get(reverse("traceability:lot_list"))
+
+        self.assertRedirects(response, "/contas/login/?next=%2Flotes%2F")
+
+    def test_lot_detail_sends_anonymous_user_to_login(self):
+        response = self.client.get(reverse("traceability:lot_detail", args=[1]))
+
+        self.assertRedirects(response, "/contas/login/?next=%2Flotes%2F1%2F")
+
+    def test_carcass_create_sends_anonymous_user_to_login(self):
+        response = self.client.get(reverse("traceability:carcass_create"))
+
+        self.assertRedirects(response, "/contas/login/?next=%2Fcarcacas%2Fnova%2F")
+
+
+class NavigationMenuTests(LoggedInTestCase):
+    """Tests that the menu shows the username and lets them log out."""
+
+    def test_menu_shows_username(self):
+        response = self.client.get(reverse("traceability:lot_list"))
+
+        self.assertContains(response, "operador")
+
+    def test_logout_sends_user_to_login(self):
+        response = self.client.post(reverse("logout"))
+
+        self.assertRedirects(response, "/contas/login/")
+
+    def test_logout_hides_logout_button(self):
+        response = self.client.post(reverse("logout"), follow=True)
+
+        self.assertNotContains(response, "Terminar sessão")

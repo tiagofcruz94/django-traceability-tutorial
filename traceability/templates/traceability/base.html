@@ -23,6 +23,15 @@
                     <li>
                         <a href="{% url 'admin:index' %}">Administração</a>
                     </li>
+                    {% if user.is_authenticated %}
+                        <li>{{ user.username }}</li>
+                        <li>
+                            <form method="post" action="{% url 'logout' %}">
+                                {% csrf_token %}
+                                <button type="submit">Terminar sessão</button>
+                            </form>
+                        </li>
+                    {% endif %}
                 </ul>
             </nav>
         </header>

@@ -1171,3 +1171,51 @@ class HomeRedirectTests(LoggedInTestCase):
 - `create_user`, not `create`: it stores the password **hashed**. Hashing is slow on purpose (tests went from 0.05 s to ~2 s).
 - `force_login` logs in without the form (doesn't check the password).
 - Without login, view tests fail with **302** (sent to the login page), not 500: a 500 is a bug in the code.
+
+### Testing the protection itself
+If every test logs in first, removing a `@login_required` breaks nothing: the pages still open (200). Only a test with an **anonymous** robot notices. One per protected page (each view has its own decorator):
+```python
+class LoginRequiredTests(TestCase):          # TestCase, not LoggedInTestCase: no login
+    """Tests that pages redirect anonymous users to the login page."""
+
+    def test_lot_detail_sends_anonymous_user_to_login(self):
+        response = self.client.get(reverse("traceability:lot_detail", args=[1]))   # no lot needed
+
+        self.assertRedirects(response, "/contas/login/?next=%2Flotes%2F1%2F")
+```
+- `next` is the page the visitor came from, different in each test (written by hand).
+- No lot with pk 1 exists, and it's still 302, not 404: the decorator runs **before** the view, so `get_object_or_404` never runs.
+- Proved by commenting out the decorator: only this test fails (`200 != 302`).
+
+### Username and logout in the menu
+```django
+{% if user.is_authenticated %}
+    <li>{{ user.username }}</li>
+    <li>
+        <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit">Terminar sessão</button>
+        </form>
+    </li>
+{% endif %}
+```
+- `user` is in **every** template (like `messages`); `user.is_authenticated` is `False` for anonymous visitors.
+- **Logout is a POST, not a link**: a GET must never change anything (any site could log you out with `<img src=".../contas/logout/">`); since Django 5 a GET to logout gives `405 Method Not Allowed`.
+- `action="..."`: where the form is sent. Without it, a form posts to its own page's URL; this button is on every page but must always post to the logout URL.
+- The logout view has **no template**: it ends the session and redirects to `LOGOUT_REDIRECT_URL`.
+- Auth URL names (from `django/contrib/auth/urls.py` in `.venv`): `"login"`, `"logout"`, no namespace. In `{% url %}`, names only, never paths (`{% url '/contas/logout/' %}` → `NoReverseMatch`).
+
+```python
+class NavigationMenuTests(LoggedInTestCase):
+    """Tests that the menu shows the username and lets them log out."""
+
+    def test_logout_hides_logout_button(self):
+        response = self.client.post(reverse("logout"), follow=True)   # no form fields: nothing after the URL
+
+        self.assertNotContains(response, "Terminar sessão")
+```
+- `self.client.post(url, data)`: the second argument is the **form content** (a dict). A string there → `AttributeError: 'str' object has no attribute 'items'` (an **E**rror: the test broke before its assert, vs a **F**ail: the assert was false).
+- The robot doesn't choose where a POST ends up: the server does; `follow=True` just follows it.
+
+### Commenting code out quickly
+**Ctrl+Q** (user shortcut in `keybindings.json`; default **Ctrl+/**) toggles comments on the selected lines, in the file's language: `#` in Python, `{% comment %}...{% endcomment %}` in Django templates (the Django extension's choice). A `{# #}` typed by hand isn't removed by the shortcut. `{# #}` is for notes that stay; the shortcut is for temporary experiments.
